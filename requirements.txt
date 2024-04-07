@@ -1,0 +1,7 @@
+aiohttp==3.7.4.post0
+PyAudio==0.2.13
+pydub==0.25.1
+websockets==10.3
+assemblyai==0.24.0
+deepgram-sdk==3.2.4
+python-dotenv==1.0.1
