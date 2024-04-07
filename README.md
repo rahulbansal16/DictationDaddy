@@ -18,3 +18,5 @@ pip install -r requirements.txt
 ```sh
 python main.py -provider assemblyai
 ```
+
+https://chat.openai.com/c/c8a63dec-f2f1-48f4-956c-3a40b2efe93a
