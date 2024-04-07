@@ -1,5 +1,8 @@
 # DictationDaddy 
 
+
+![image](https://github.com/rahulbansal16/DictationDaddy/assets/8466045/89264f5e-18ad-4527-b804-1160c452b902)
+
 Welcome to DictationDaddy, a project born out of frustration with current dictation tools. Despite advancements in LMS and technologies like GPT, many dictation tools still fall short. DictationDaddy aims to bridge this gap, leveraging the power of AssemblyAI and Deepgram to deliver a superior dictation experience. We want to be what Cortana, Siri failed to become.
 
 To run this script, follow these steps:
