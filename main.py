@@ -8,9 +8,12 @@ import sys
 import wave
 import websockets
 import keyboard
+import houndify
 
 from datetime import datetime
 from dotenv import load_dotenv
+
+from util import save_frames_and_transcription, save_frames_to_file
 if os.path.exists('local.env'):
     load_dotenv('local.env')
 else:
@@ -34,6 +37,7 @@ REALTIME_RESOLUTION = 0.250
 
 subtitle_line_counter = 0
 
+args = None
 
 def subtitle_time_formatter(seconds, separator):
     hours = int(seconds // 3600)
@@ -105,7 +109,9 @@ async def run(key, method, format, **kwargs):
                 try:
                     while True:
                         mic_data = await audio_queue.get()
+                        global all_mic_data
                         all_mic_data.append(mic_data)
+                        print("Length of all_mic_data", len(all_mic_data))
                         await ws.send(mic_data)
                 except websockets.exceptions.ConnectionClosedOK:
                     await ws.send(json.dumps({"type": "CloseStream"}))
@@ -196,6 +202,7 @@ async def run(key, method, format, **kwargs):
                                 transcript = subtitle_formatter(res, format)
                             print(transcript)
                             keyboard.write(textToOutput(transcript), delay=0.01)
+                            global all_transcripts
                             all_transcripts.append(transcript)
 
                         # if using the microphone, close stream if user says "goodbye"
@@ -339,7 +346,7 @@ def parse_args():
         help="The provider to use for the audio. Can be 'Deepgram' or 'Assembly AI'. Defaults to 'deepgram'.",
         nargs="?",
         const=1,
-        default="deepgram"
+        default="houndify"
     )
     parser.add_argument(
         "-i",
@@ -406,13 +413,17 @@ def textToOutput(text):
 def main():
     """Entrypoint for the example."""
     # Parse the command-line arguments.
+    global args
     args = parse_args()
-    print(args)
     provider = args.provider
+    print("The provider is", provider)
     if provider == "assembly":
         run_assembly()
         return
 
+    if provider == "houndify":
+        setup_houndify()
+        return
 
     input = "mic"
     key = os.getenv("DEEPGRAM_API_KEY")
@@ -556,11 +567,87 @@ def run_assembly():
 # if __name__ == "__main__":
 #     sys.exit(main() or 0)
 
+audio = pyaudio.PyAudio()
+
+# Start recording
+stream = audio.open(format=FORMAT, channels=CHANNELS,
+                    rate=RATE, input=True,
+                    frames_per_buffer=CHUNK)
+
+def setup_houndify():
+    client_id = os.getenv("HOUNDIFY_CLIENT_ID")
+    client_key = os.getenv("HOUNDIFY_CLIENT_KEY")
+    user_id = "test"
+    houndify_client = houndify.StreamingHoundClient(client_id, client_key, user_id, sampleRate=RATE)
+    houndify_client.start(MyListener())
+    audio = pyaudio.PyAudio()
+    stream = audio.open(
+        format=FORMAT,
+        channels=CHANNELS,
+        rate=RATE,
+        input=True,
+        frames_per_buffer=CHUNK,
+    )
+    stream.start_stream()
+    try:
+        for _ in range(1000):
+            data = stream.read(CHUNK)
+            global all_mic_data
+            all_mic_data.append(data)
+            # Check if there's some noise (data) before sending it to houndify_client
+            if any(byte != b'\x00' for byte in data):
+                # print("Filling the data")
+                houndify_client.fill(data)
+            else:
+                print("No data to send")
+    except KeyboardInterrupt:
+        stream.stop_stream()
+        stream.close()
+        audio.terminate()
+    houndify_client.finish()
+    return houndify_client
+
+class MyListener(houndify.HoundListener):
+  def __init__(self):
+    self.transcripts = []
+    self.final_transcript = ""
+
+  def onPartialTranscript(self, transcript):
+    if (transcript == ""):
+        return
+    
+    if (self.final_transcript == transcript):
+        return
+    
+    ans = transcript[len(self.final_transcript):]
+    print(transcript)
+    self.final_transcript = transcript
+    global all_transcripts
+    all_transcripts = [transcript]
+    # self.transcripts.append(transcript)
+
+  def onFinalResponse(self, response):
+    print("Final response: " + str(response))
+
+  def onError(self, err):
+    print("Error " + str(err))
+
 
 def setup_hotkeys():
     print("Adding the hotkey")
     keyboard.add_hotkey('alt+o', main)
-    keyboard.wait()
+    keyboard.add_hotkey('ctrl+c', on_ctrl_c)
+    try:
+        keyboard.wait()
+    except KeyboardInterrupt:
+        on_ctrl_c()
+
+def on_ctrl_c():
+    save_frames_and_transcription(all_mic_data, CHANNELS, 2, RATE, " ".join(all_transcripts), args.provider if args else  "houndify")
+    sys.exit(1)
+# keyboard.add_hotkey('ctrl+c', on_ctrl_c)
+
 
 if __name__ == "__main__":
     setup_hotkeys()
+    # print(setup_houndify())

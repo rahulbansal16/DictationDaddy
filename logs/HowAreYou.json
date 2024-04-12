@@ -1,0 +1,7 @@
+{
+    "channels": 1,
+    "sampleWidth": 2,
+    "frameRate": 16000,
+    "provider": "deepgram",
+    "transcript": "How are you"
+}
