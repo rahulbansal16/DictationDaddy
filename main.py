@@ -624,6 +624,9 @@ class MyListener(houndify.HoundListener):
     self.final_transcript = transcript
     global all_transcripts
     all_transcripts = [transcript]
+    keyboard.press_and_release('ctrl+a')
+    keyboard.press_and_release('delete')
+    keyboard.write(textToOutput(transcript), delay=0.01)
     # self.transcripts.append(transcript)
 
   def onFinalResponse(self, response):
