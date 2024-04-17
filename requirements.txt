@@ -6,3 +6,4 @@ assemblyai==0.24.0
 deepgram-sdk==3.2.4
 python-dotenv==1.0.1
 Houndify==2.1.2
+openai===0.27.10

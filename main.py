@@ -12,6 +12,7 @@ import houndify
 
 from datetime import datetime
 from dotenv import load_dotenv
+from ai import callGPT
 
 from util import save_frames_and_transcription, save_frames_to_file
 if os.path.exists('local.env'):
@@ -403,6 +404,8 @@ def parse_args():
 
 texts = []
 def textToOutput(text):
+    # gpt_output = callGPT(text)
+    # return gpt_output
     if len(texts) > 0:
         texts.append(text)
         return " " + text
@@ -578,7 +581,11 @@ def setup_houndify():
     client_id = os.getenv("HOUNDIFY_CLIENT_ID")
     client_key = os.getenv("HOUNDIFY_CLIENT_KEY")
     user_id = "test"
-    houndify_client = houndify.StreamingHoundClient(client_id, client_key, user_id, sampleRate=RATE)
+    houndify_client = houndify.StreamingHoundClient(client_id, client_key, user_id, sampleRate=RATE, requestInfo={
+        "PartialTranscriptsDesired": True,
+        "ReturnResponseAudioAsURL": True,
+        "UseFormattedTranscriptionAsDefault": True
+    }, saveQuery=True)
     houndify_client.start(MyListener())
     audio = pyaudio.PyAudio()
     stream = audio.open(
@@ -612,6 +619,21 @@ class MyListener(houndify.HoundListener):
     self.transcripts = []
     self.final_transcript = ""
 
+  def onFinalPartialTranscript(self, transcript):
+    print("The Final Partial transcript", transcript)
+    return
+
+  def onPartialTranscriptRaw(self, response):
+    print("The PartialTranscriptRaw response is", response)
+    return
+  
+  def onFinalPartialTranscriptProperties(self, transcript, props):
+    print("The Final Partial transcript", transcript, props)
+    return
+  
+  def onPartialTranscriptProperties(self, transcript, props):
+    print("The Partial transcript", transcript, props)
+  
   def onPartialTranscript(self, transcript):
     if (transcript == ""):
         return
