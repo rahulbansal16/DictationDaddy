@@ -26,6 +26,28 @@ def callGPT(user_input):
     )
     return completion.choices[0].message.content
 
+
+def callVisionGPT(base64_image, prompt):
+    response = openai.ChatCompletion.create(
+        model="gpt-4-turbo",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}",
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=300,
+    )
+    return response.choices[0].message.content
+
 # print(callGPT())
 
 

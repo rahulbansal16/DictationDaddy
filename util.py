@@ -59,3 +59,27 @@ def save_frames_and_transcription(frames, channels, sample_width, frame_rate, tr
     except Exception as e:
         print(f"Failed to save frames and transcription: {e}")
 
+import pyautogui
+import datetime
+import os
+
+def take_screenshot():
+    """
+    Takes a screenshot of the entire screen, saves it in the screenshot directory with a timestamp, and returns the base64 encoded string of the screenshot.
+    """
+    import base64
+    from io import BytesIO
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    screenshot_directory = "screenshot"
+    os.makedirs(screenshot_directory, exist_ok=True)
+    screenshot_filename = f"{screenshot_directory}/screenshot_{timestamp}.png"
+    screenshot = pyautogui.screenshot()
+    screenshot.save(screenshot_filename)
+    print(f"Screenshot saved in {screenshot_directory} as {screenshot_filename}")
+
+    buffer = BytesIO()
+    screenshot.save(buffer, format="PNG")
+    base64_image = base64.b64encode(buffer.getvalue()).decode()
+
+    return base64_image

@@ -12,9 +12,9 @@ import houndify
 
 from datetime import datetime
 from dotenv import load_dotenv
-from ai import callGPT
+from ai import callGPT, callVisionGPT
 
-from util import save_frames_and_transcription, save_frames_to_file
+from util import save_frames_and_transcription, save_frames_to_file, take_screenshot
 if os.path.exists('local.env'):
     load_dotenv('local.env')
 else:
@@ -586,7 +586,7 @@ def setup_houndify():
         "ReturnResponseAudioAsURL": True,
         "UseFormattedTranscriptionAsDefault": True
     }, saveQuery=True)
-    houndify_client.start(MyListener())
+    # houndify_client.start(MyListener())
     audio = pyaudio.PyAudio()
     stream = audio.open(
         format=FORMAT,
@@ -596,22 +596,30 @@ def setup_houndify():
         frames_per_buffer=CHUNK,
     )
     stream.start_stream()
+    stoped = True
     try:
-        for _ in range(1000):
+        # for _ in (1000):
+        while True:
+            if stoped:
+                houndify_client.start(MyListener())
+                stoped = False
             data = stream.read(CHUNK)
             global all_mic_data
             all_mic_data.append(data)
             # Check if there's some noise (data) before sending it to houndify_client
             if any(byte != b'\x00' for byte in data):
                 # print("Filling the data")
-                houndify_client.fill(data)
+                if houndify_client.fill(data):
+                    print("Detecting Fill done")
+                    stoped = True
+                    houndify_client.finish()
             else:
                 print("No data to send")
     except KeyboardInterrupt:
         stream.stop_stream()
         stream.close()
         audio.terminate()
-    houndify_client.finish()
+    # houndify_client.finish()
     return houndify_client
 
 class MyListener(houndify.HoundListener):
@@ -671,6 +679,30 @@ def on_ctrl_c():
     save_frames_and_transcription(all_mic_data, CHANNELS, 2, RATE, " ".join(all_transcripts), args.provider if args else  "houndify")
     sys.exit(1)
 # keyboard.add_hotkey('ctrl+c', on_ctrl_c)
+
+def clear_and_refill_text(text):
+    """
+    Clears the current cursor location and refills it with the specified text.
+    
+    Args:
+    - text: The text to refill at the cursor location.
+    """
+    keyboard.press_and_release('ctrl+a')
+    keyboard.press_and_release('delete')
+    keyboard.write(text, delay=0.01)
+
+
+def on_alt_i():
+    screenshot_base64 = take_screenshot()
+    print("The screenshot is", screenshot_base64)
+    prompt = "Describe what's happening in this screenshot."
+    prompt = "rewrite my email to be more informal"
+    vision_response = callVisionGPT(screenshot_base64, prompt)
+    print("AI's response to the screenshot:", vision_response)
+    clear_and_refill_text(vision_response)
+
+keyboard.add_hotkey('alt+i', on_alt_i)
+
 
 
 if __name__ == "__main__":
