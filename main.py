@@ -10,9 +10,13 @@ import websockets
 import keyboard
 import houndify
 
+import threading
+import signal
+
 from datetime import datetime
 from dotenv import load_dotenv
 from ai import callGPT, callVisionGPT
+from consts import TranscriptType
 
 from util import save_frames_and_transcription, save_frames_to_file, take_screenshot
 if os.path.exists('local.env'):
@@ -622,10 +626,20 @@ def setup_houndify():
     # houndify_client.finish()
     return houndify_client
 
+loop = asyncio.new_event_loop()
+# loop.run_forever()
+
+def check_thread():
+    current_thread = threading.current_thread()
+    print(f"Current thread: {current_thread.name}")
+
+check_thread()
+
 class MyListener(houndify.HoundListener):
   def __init__(self):
     self.transcripts = []
     self.final_transcript = ""
+    self.identify_intent_future = None  # Future for debouncing
 
   def onFinalPartialTranscript(self, transcript):
     print("The Final Partial transcript", transcript)
@@ -649,21 +663,15 @@ class MyListener(houndify.HoundListener):
     if (self.final_transcript == transcript):
         return
     
+    check_thread()
+    
     ans = transcript[len(self.final_transcript):]
     print(transcript)
     self.final_transcript = transcript
-    global all_transcripts
-    raw_input = generate_raw_input(all_transcripts[-1], transcript)
-    print("The raw input is", raw_input)
-    insert_at_cursor(raw_input)
-    all_transcripts = [transcript]
-    # all_transcripts = [transcript]
-    # raw_input = generate_raw_input(self.transcripts[-1], transcript)
-    # keyboard.press_and_release('ctrl+a')
-    # keyboard.press_and_release('delete')
-    # keyboard.write(textToOutput(transcript), delay=0.01)
-    # self.transcripts.append(transcript)
-
+    self.handle_identify_intent_result(transcript)
+    self.debounce_identify_intent(transcript, self.handle_identify_intent_result)
+    return
+  
   def onFinalResponse(self, response):
     print("Final response: " + str(response))
 
@@ -671,10 +679,58 @@ class MyListener(houndify.HoundListener):
     print("Error " + str(err))
 
 
+  def debounce_identify_intent(self, text, callback):
+        # Cancel the previous task if it exists
+        print("The identify intent task is", self.identify_intent_future)
+         
+        if self.identify_intent_future is not None and not self.identify_intent_future.done():
+            print("Cancelling the Future")
+            self.identify_intent_future.cancel()
+
+        # Schedule a new task
+        print("The loop is", loop)
+        self.identify_intent_future = asyncio.run_coroutine_threadsafe(self.identify_intent(text, callback), loop)
+        return
+  
+  async def identify_intent(self, text, callback):
+        # Function that actually calls the GPT model or any other logic
+        print("The identify intent method is", text)
+        async def call_model(text):
+            print("Calling the callGPT")
+            result = callGPT(text)  # Your existing call to GPT or any other logic
+            return result
+
+        try:
+            await asyncio.sleep(1)  # Debounce delay
+            result = await call_model(text)
+            loop.call_soon_threadsafe(callback, result)  # Execute the callback in a thread-safe manner
+        except asyncio.CancelledError:
+            print ("The task was cancelled")
+            pass  # Task was cancelled, do nothing
+
+        return 
+  
+  def handle_identify_intent_result(self, transcript):
+        global all_transcripts
+        print("Identify intent result:", transcript)
+        raw_input = generate_raw_input(all_transcripts[-1], transcript)
+        print("The raw input is", raw_input)
+        insert_at_cursor(raw_input)
+        all_transcripts = [transcript]
+
+
+
+async def identify_intent(text, callback):
+    result = callGPT(text)
+    return result
+    
+
 def setup_hotkeys():
     print("Adding the hotkey")
     keyboard.add_hotkey('alt+o', main)
     keyboard.add_hotkey('ctrl+c', on_ctrl_c)
+
+def keyboard_listener():
     try:
         keyboard.wait()
     except KeyboardInterrupt:
@@ -750,5 +806,10 @@ keyboard.add_hotkey('alt+i', on_alt_i)
 
 
 if __name__ == "__main__":
-    setup_hotkeys()
-    # print(setup_houndify())
+    try:
+        setup_hotkeys()
+        threading.Thread(target=keyboard_listener, daemon=True).start()
+        loop.run_forever()
+    finally:
+        print("Exiting...")
+        sys.exit(0)
