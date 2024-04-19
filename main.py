@@ -23,7 +23,7 @@ else:
 startTime = datetime.now()
 
 all_mic_data = []
-all_transcripts = []
+all_transcripts = [""]
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
@@ -653,10 +653,15 @@ class MyListener(houndify.HoundListener):
     print(transcript)
     self.final_transcript = transcript
     global all_transcripts
+    raw_input = generate_raw_input(all_transcripts[-1], transcript)
+    print("The raw input is", raw_input)
+    insert_at_cursor(raw_input)
     all_transcripts = [transcript]
-    keyboard.press_and_release('ctrl+a')
-    keyboard.press_and_release('delete')
-    keyboard.write(textToOutput(transcript), delay=0.01)
+    # all_transcripts = [transcript]
+    # raw_input = generate_raw_input(self.transcripts[-1], transcript)
+    # keyboard.press_and_release('ctrl+a')
+    # keyboard.press_and_release('delete')
+    # keyboard.write(textToOutput(transcript), delay=0.01)
     # self.transcripts.append(transcript)
 
   def onFinalResponse(self, response):
@@ -679,6 +684,45 @@ def on_ctrl_c():
     save_frames_and_transcription(all_mic_data, CHANNELS, 2, RATE, " ".join(all_transcripts), args.provider if args else  "houndify")
     sys.exit(1)
 # keyboard.add_hotkey('ctrl+c', on_ctrl_c)
+
+def generate_raw_input(oldResponse, newResponse):
+    if (oldResponse == newResponse):
+        return ""
+    old = oldResponse
+    new = newResponse
+    output = ""
+    if old == "":
+        return new 
+    # Find the common prefix length
+    common_prefix_length = 0
+    for i in range(min(len(old), len(new))):
+        if old[i] == new[i]:
+            common_prefix_length += 1
+        else:
+            break
+    # Delete the non-common part of the old string
+    output += "\b" * (len(old) - common_prefix_length)
+    # Add the non-common part of the new string
+    output += new[common_prefix_length:]
+    
+    return output
+
+def insert_at_cursor(text):
+    """
+    Inserts text at the current cursor location. If the text contains a backspace character,
+    it deletes the character before the cursor.
+    
+    Args:
+    - text: The text to be inserted at the cursor location.
+    """
+    for char in text:
+        if char == "\b":  # If the character is a backspace
+            keyboard.press_and_release('backspace')
+        elif char == "\n":  # If the character is a new line
+            keyboard.press_and_release('enter')
+        else:
+            keyboard.write(char, delay=0.01)
+
 
 def clear_and_refill_text(text):
     """
