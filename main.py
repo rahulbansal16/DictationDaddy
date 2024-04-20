@@ -700,7 +700,7 @@ class MyListener(houndify.HoundListener):
     # print("Transcript_after_commands:", transcript_after_commands)
 
     self.handle_identify_command_result(transcript_from_houndify, transcript_on_editor, transcript_after_commands)
-    # self.debounce_identify_command(transcript_from_houndify, transcript_on_editor, transcript_after_commands, self.handle_identify_command_result)
+    self.debounce_identify_command(transcript_from_houndify, transcript_on_editor, transcript_after_commands, self.handle_identify_command_result)
     return
   
   def onFinalResponse(self, response):
@@ -766,8 +766,8 @@ def keyboard_listener():
     except KeyboardInterrupt:
         on_ctrl_c()
 
-def on_ctrl_c():
-    save_frames_and_transcription(all_mic_data, CHANNELS, 2, RATE, " ".join(all_transcripts), args.provider if args else  "houndify")
+def on_ctrl_c(satisfaction=None):
+    save_frames_and_transcription(all_mic_data, CHANNELS, 2, RATE, " ".join(all_transcripts), args.provider if args else  "houndify", satisfaction)
     sys.exit(1)
 # keyboard.add_hotkey('ctrl+c', on_ctrl_c)
 
@@ -841,7 +841,9 @@ if __name__ == "__main__":
         threading.Thread(target=keyboard_listener, daemon=True).start()
         loop.run_forever()
     except KeyboardInterrupt:
-        on_ctrl_c()
+        # Clearing all input as per the updated instruction
+        satisfaction = input("Are you satisfied with the audio quality? (y/n): ").strip()
+        on_ctrl_c(satisfaction)
     finally:
         print("Exiting...")
         sys.exit(0)

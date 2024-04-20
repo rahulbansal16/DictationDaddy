@@ -21,7 +21,7 @@ def save_frames_to_file(frames, channels, sample_width, frame_rate, filename):
     except Exception as e:
         print(f"Failed to save frames to file: {e}")
 
-def save_frames_and_transcription(frames, channels, sample_width, frame_rate, transcription, provider):
+def save_frames_and_transcription(frames, channels, sample_width, frame_rate, transcription, provider, satisfaction='y'):
     print("The transcription is", transcription)
     """
     Saves audio frames to a WAV file and transcription to a JSON file with camelCase naming convention.
@@ -47,8 +47,8 @@ def save_frames_and_transcription(frames, channels, sample_width, frame_rate, tr
         filename_base = ''.join(x for x in transcription.title() if not x.isspace())
         if len(filename_base) > 250:
             filename_base = filename_base[:248] + "..."
-        wav_filename = f'logs/{date_directory}/{current_time}{filename_base}.wav'
-        json_filename = f'logs/{date_directory}/{current_time}{filename_base}.json'
+        wav_filename = f'logs/{date_directory}/{current_time}{satisfaction}-{filename_base}.wav'
+        json_filename = f'logs/{date_directory}/{current_time}{satisfaction}-{filename_base}.json'
 
         # Save the frames to a WAV file
         save_frames_to_file(frames, channels, sample_width, frame_rate, wav_filename)
@@ -59,6 +59,7 @@ def save_frames_and_transcription(frames, channels, sample_width, frame_rate, tr
             "sampleWidth": sample_width,
             "frameRate": frame_rate,
             "provider": provider,
+            "satisfaction": satisfaction,
             "transcript": transcription if len(transcription) <= 250 else transcription[:248] + "..."
         }
 
