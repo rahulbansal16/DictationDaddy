@@ -580,12 +580,40 @@ audio = pyaudio.PyAudio()
 stream = audio.open(format=FORMAT, channels=CHANNELS,
                     rate=RATE, input=True,
                     frames_per_buffer=CHUNK)
+class Transcript:
+    def __init__(self):
+        self.raw_transcript = ""
+        self.transcript_on_editor = (0, "")
+        
+    # This will be called by the callback
+    def getTranscriptOnEditor(self):
+        return self.transcript_on_editor[1]
+
+    def setTranscriptOnEditor(self, transcript, location):
+        self.transcript_on_editor = (location, transcript)
+
+    def getRawTranscript(self):
+        return self.raw_transcript
+
+    def setRawTranscript(self, transcript):
+        self.raw_transcript = transcript
+
+    def transcriptAfterCommands(self, transcript_from_server):
+        transcript_from_server = self.transcript_on_editor[1] + transcript_from_server[self.transcript_on_editor[0]:]
+        return transcript_from_server
+
+    def isTranscriptProcessed(self, raw_transcript):
+        return self.raw_transcript == raw_transcript
+    
+    def setRawTranscript(self, raw_transcript):
+        self.raw_transcript = raw_transcript
+
 
 def setup_houndify():
     client_id = os.getenv("HOUNDIFY_CLIENT_ID")
     client_key = os.getenv("HOUNDIFY_CLIENT_KEY")
     user_id = "test"
-    houndify_client = houndify.StreamingHoundClient(client_id, client_key, endpoint="https://transcription.houndify.com/v1/transcription",  userID=user_id, sampleRate=RATE, requestInfo={
+    houndify_client = houndify.StreamingHoundClient(client_id, client_key, userID=user_id, sampleRate=RATE, requestInfo={
         "PartialTranscriptsDesired": True,
         "ReturnResponseAudioAsURL": True,
         "UseFormattedTranscriptionAsDefault": True
@@ -637,9 +665,8 @@ check_thread()
 
 class MyListener(houndify.HoundListener):
   def __init__(self):
-    self.transcripts = []
-    self.final_transcript = ""
-    self.identify_intent_future = None  # Future for debouncing
+    self.transcript = Transcript()
+    self.identify_command_future = None  # Future for debouncing
 
   def onFinalPartialTranscript(self, transcript):
     print("The Final Partial transcript", transcript)
@@ -656,20 +683,24 @@ class MyListener(houndify.HoundListener):
   def onPartialTranscriptProperties(self, transcript, props):
     print("The Partial transcript", transcript, props)
   
-  def onPartialTranscript(self, transcript):
-    if (transcript == ""):
+  def onPartialTranscript(self, transcript_from_houndify):
+    if (transcript_from_houndify == ""):
         return
     
-    if (self.final_transcript == transcript):
+    if self.transcript.isTranscriptProcessed(transcript_from_houndify):
         return
     
     check_thread()
     
-    ans = transcript[len(self.final_transcript):]
-    print(transcript)
-    self.final_transcript = transcript
-    self.handle_identify_intent_result(transcript)
-    self.debounce_identify_intent(transcript, self.handle_identify_intent_result)
+    print(transcript_from_houndify)
+    transcript_after_commands = self.transcript.transcriptAfterCommands(transcript_from_houndify)
+    transcript_on_editor = self.transcript.getTranscriptOnEditor()
+    # print("Transcript_from_houndify:", transcript_from_houndify)
+    # print("Transcript_on_editor:", transcript_on_editor)
+    # print("Transcript_after_commands:", transcript_after_commands)
+
+    self.handle_identify_command_result(transcript_from_houndify, transcript_on_editor, transcript_after_commands)
+    # self.debounce_identify_command(transcript_from_houndify, transcript_on_editor, transcript_after_commands, self.handle_identify_command_result)
     return
   
   def onFinalResponse(self, response):
@@ -679,22 +710,22 @@ class MyListener(houndify.HoundListener):
     print("Error " + str(err))
 
 
-  def debounce_identify_intent(self, text, callback):
+  def debounce_identify_command(self, transcript_from_houndify, transcript_on_editor ,transcript_after_commands, callback):
         # Cancel the previous task if it exists
-        print("The identify intent task is", self.identify_intent_future)
+        # print("The identify command task is", self.identify_command_future)
          
-        if self.identify_intent_future is not None and not self.identify_intent_future.done():
+        if self.identify_command_future is not None and not self.identify_command_future.done():
             print("Cancelling the Future")
-            self.identify_intent_future.cancel()
+            self.identify_command_future.cancel()
 
         # Schedule a new task
-        print("The loop is", loop)
-        self.identify_intent_future = asyncio.run_coroutine_threadsafe(self.identify_intent(text, callback), loop)
+        # print("The loop is", loop)
+        self.identify_command_future = asyncio.run_coroutine_threadsafe(self.identify_command(transcript_from_houndify, transcript_on_editor, transcript_after_commands, callback), loop)
         return
   
-  async def identify_intent(self, text, callback):
+  async def identify_command(self, transcript_from_houndify, transcript_on_editor, transcript_after_commands, handle_indentify_commad_result):
         # Function that actually calls the GPT model or any other logic
-        print("The identify intent method is", text)
+        # print("The identify command method is", transcript_after_commands)
         async def call_model(text):
             print("Calling the callGPT")
             result = callGPT(text)  # Your existing call to GPT or any other logic
@@ -702,28 +733,27 @@ class MyListener(houndify.HoundListener):
 
         try:
             await asyncio.sleep(1)  # Debounce delay
-            result = await call_model(text)
-            loop.call_soon_threadsafe(callback, result)  # Execute the callback in a thread-safe manner
+            transcript_after_command_execution = await call_model(transcript_after_commands)
+            loop.call_soon_threadsafe(handle_indentify_commad_result, transcript_from_houndify, transcript_on_editor, transcript_after_command_execution)  # Execute the callback in a thread-safe manner
         except asyncio.CancelledError:
             print ("The task was cancelled")
             pass  # Task was cancelled, do nothing
 
         return 
   
-  def handle_identify_intent_result(self, transcript):
-        global all_transcripts
-        print("Identify intent result:", transcript)
-        raw_input = generate_raw_input(all_transcripts[-1], transcript)
-        print("The raw input is", raw_input)
+  def handle_identify_command_result(self, transcript_from_houndify, transcript_on_editor, transcript_after_command_execution):
+        # print("In the handle_identify_command_result")
+        # print("Identify command result:", transcript_after_command_execution)
+        # print("The transcript from houndify is", transcript_from_houndify)
+        # print("The transcript on editor is", transcript_on_editor)
+        transcript_on_editor = self.transcript.getTranscriptOnEditor()
+        raw_input = generate_raw_input(transcript_on_editor, transcript_after_command_execution)
         insert_at_cursor(raw_input)
-        all_transcripts = [transcript]
+        self.transcript.setTranscriptOnEditor(transcript_after_command_execution, len(transcript_from_houndify))
+        self.transcript.setRawTranscript(transcript_from_houndify)
+        global all_transcripts
+        all_transcripts = [transcript_from_houndify]
 
-
-
-async def identify_intent(text, callback):
-    result = callGPT(text)
-    return result
-    
 
 def setup_hotkeys():
     print("Adding the hotkey")
@@ -810,6 +840,8 @@ if __name__ == "__main__":
         setup_hotkeys()
         threading.Thread(target=keyboard_listener, daemon=True).start()
         loop.run_forever()
+    except KeyboardInterrupt:
+        on_ctrl_c()
     finally:
         print("Exiting...")
         sys.exit(0)
