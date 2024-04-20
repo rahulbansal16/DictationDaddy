@@ -35,15 +35,23 @@ def save_frames_and_transcription(frames, channels, sample_width, frame_rate, tr
     - transcription: The transcription text of the audio.
     """
     try:
-        # Convert transcription to camelCase for the filename
+        import os
         from datetime import datetime
-        current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M_")
-        filename_base = 'logs/' + current_datetime + ''.join(x for x in transcription.title() if not x.isspace())
+
+        # Create a directory with the current date
+        date_directory = datetime.now().strftime("%Y-%m-%d")
+        os.makedirs(f'logs/{date_directory}', exist_ok=True)
+
+        # Generate filenames with the current hour timestamp appended
+        current_time = datetime.now().strftime("%H-%M_")
+        filename_base = ''.join(x for x in transcription.title() if not x.isspace())
         if len(filename_base) > 250:
             filename_base = filename_base[:248] + "..."
-        
+        wav_filename = f'logs/{date_directory}/{current_time}{filename_base}.wav'
+        json_filename = f'logs/{date_directory}/{current_time}{filename_base}.json'
+
         # Save the frames to a WAV file
-        save_frames_to_file(frames, channels, sample_width, frame_rate, filename_base + ".wav")
+        save_frames_to_file(frames, channels, sample_width, frame_rate, wav_filename)
 
         # Create a dictionary with the audio file details
         audio_details = {
@@ -54,13 +62,11 @@ def save_frames_and_transcription(frames, channels, sample_width, frame_rate, tr
             "transcript": transcription if len(transcription) <= 250 else transcription[:248] + "..."
         }
 
-        # Save the dictionary to a JSON file with the same name as the audio file
-        json_filename = filename_base + ".json"
+        # Save the dictionary to a JSON file
         with open(json_filename, 'w') as json_file:
             json.dump(audio_details, json_file)
     except Exception as e:
         print(f"Failed to save frames and transcription: {e}")
-
 import pyautogui
 import datetime
 import os
