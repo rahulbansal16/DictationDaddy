@@ -842,7 +842,7 @@ if __name__ == "__main__":
         loop.run_forever()
     except KeyboardInterrupt:
         # Clearing all input as per the updated instruction
-        satisfaction = input("Are you satisfied with the audio quality? (y/n): ").strip()
+        satisfaction = input("Are you satisfied with the audio quality? (y/n): ")
         on_ctrl_c(satisfaction)
     finally:
         print("Exiting...")
