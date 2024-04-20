@@ -585,7 +585,7 @@ def setup_houndify():
     client_id = os.getenv("HOUNDIFY_CLIENT_ID")
     client_key = os.getenv("HOUNDIFY_CLIENT_KEY")
     user_id = "test"
-    houndify_client = houndify.StreamingHoundClient(client_id, client_key, user_id, sampleRate=RATE, requestInfo={
+    houndify_client = houndify.StreamingHoundClient(client_id, client_key, endpoint="https://transcription.houndify.com/v1/transcription",  userID=user_id, sampleRate=RATE, requestInfo={
         "PartialTranscriptsDesired": True,
         "ReturnResponseAudioAsURL": True,
         "UseFormattedTranscriptionAsDefault": True
