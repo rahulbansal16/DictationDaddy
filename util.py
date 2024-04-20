@@ -36,7 +36,9 @@ def save_frames_and_transcription(frames, channels, sample_width, frame_rate, tr
     """
     try:
         # Convert transcription to camelCase for the filename
-        filename_base = 'logs/'+ ''.join(x for x in transcription.title() if not x.isspace())
+        from datetime import datetime
+        current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M_")
+        filename_base = 'logs/' + current_datetime + ''.join(x for x in transcription.title() if not x.isspace())
         if len(filename_base) > 250:
             filename_base = filename_base[:248] + "..."
         
