@@ -824,9 +824,24 @@ def clear_and_refill_text(text):
 
 def on_alt_i():
     screenshot_base64 = take_screenshot()
-    print("The screenshot is", screenshot_base64)
-    prompt = "Describe what's happening in this screenshot."
-    prompt = "rewrite my email to be more informal"
+    # print("The screenshot is", screenshot_base64)
+    import speech_recognition as sr
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        audio = r.listen(source)
+        all_mic_data.append(audio.get_wav_data())
+    prompt = b"What's on my screen"
+    client_id = os.getenv("HOUNDIFY_CLIENT_ID")
+    client_key = os.getenv("HOUNDIFY_CLIENT_KEY")
+    try:
+        prompt = r.recognize_houndify(audio, client_id=client_id, client_key=client_key)[0]
+        all_transcripts = [prompt]
+        print("Houndify thinks you said " + prompt)
+    except sr.UnknownValueError:
+        print("Houndify could not understand audio")
+    except sr.RequestError as e:
+        print("Could not request results from Houndify service; {0}".format(e))
     vision_response = callVisionGPT(screenshot_base64, prompt)
     print("AI's response to the screenshot:", vision_response)
     clear_and_refill_text(vision_response)
