@@ -44,6 +44,40 @@ subtitle_line_counter = 0
 
 args = None
 
+import tkinter as tk
+
+def create_floating_ui(initial_text="Hello, World!"):
+    # Create the main window
+    root = tk.Tk()
+    root.title("Floating UI")
+
+    # Configure the window to always stay on top and remove the title bar
+    root.overrideredirect(True)  # This removes the title bar
+    root.attributes('-topmost', True)  # Keeps the window always on top
+
+    # Set the window background and size
+    root.configure(background='white')
+    root.geometry('300x200+1600+100')  # Adjust size and position to your needs
+
+    # Create a text widget with a scrollbar
+    text = tk.Text(root, bg='white', fg='black', font=('Arial', 12))
+    scrollbar = tk.Scrollbar(root, command=text.yview)
+    text.configure(yscrollcommand=scrollbar.set)
+    text.insert('end', initial_text)
+    text.pack(side='left', expand=True, fill='both')
+    scrollbar.pack(side='right', fill='y')
+
+    # Function to clear the text widget
+    def clear_text():
+        text.delete('1.0', 'end')
+
+    # Create a clear button
+    clear_button = tk.Button(root, text="Clear", command=clear_text)
+    clear_button.pack(side='bottom')
+
+    # Start the GUI
+    root.mainloop()
+
 def subtitle_time_formatter(seconds, separator):
     hours = int(seconds // 3600)
     minutes = int((seconds % 3600) // 60)
@@ -843,6 +877,9 @@ def on_alt_i():
     except sr.RequestError as e:
         print("Could not request results from Houndify service; {0}".format(e))
     vision_response = callVisionGPT(screenshot_base64, prompt)
+    all_response.append(vision_response)
+    create_floating_ui("\n".join(all_response))
+    clear_and_refill_text("\n".join(all_response))
     print("AI's response to the screenshot:", vision_response)
     clear_and_refill_text(vision_response)
 
