@@ -21,7 +21,7 @@ pip install -r requirements.txt
 python main.py -provider assemblyai
 ```
 
-Join the [Discord Group](https://discord.gg/tz4PF2PJ)
+Join the [Discord Group](https://discord.gg/WAcBZHvunz)
 
 https://chat.openai.com/c/c8a63dec-f2f1-48f4-956c-3a40b2efe93a
 
