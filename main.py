@@ -55,25 +55,41 @@ def create_floating_ui(initial_text="Hello, World!"):
     root.overrideredirect(True)  # This removes the title bar
     root.attributes('-topmost', True)  # Keeps the window always on top
 
-    # Set the window background and size
-    root.configure(background='white')
+    # Set the window background and size for dark theme
+    root.configure(background='black')
     root.geometry('300x200+1600+100')  # Adjust size and position to your needs
+    root.resizable(True, True)  # Make the window resizable
 
-    # Create a text widget with a scrollbar
-    text = tk.Text(root, bg='white', fg='black', font=('Arial', 12))
+    # Create a text widget with a scrollbar for dark theme
+    text = tk.Text(root, bg='black', fg='white', font=('Arial', 12), padx=10, pady=10)
     scrollbar = tk.Scrollbar(root, command=text.yview)
     text.configure(yscrollcommand=scrollbar.set)
     text.insert('end', initial_text)
-    text.pack(side='left', expand=True, fill='both')
+    text.pack(side='left', expand=True, fill='both', padx=5, pady=5)
     scrollbar.pack(side='right', fill='y')
 
     # Function to clear the text widget
     def clear_text():
         text.delete('1.0', 'end')
 
-    # Create a clear button
-    clear_button = tk.Button(root, text="Clear", command=clear_text)
-    clear_button.pack(side='bottom')
+    # Create a clear button suitable for dark theme
+    clear_button = tk.Button(root, text="Clear", command=clear_text, bg='grey', fg='white')
+    clear_button.pack(side='bottom', padx=10, pady=10)
+
+    # Make the window draggable
+    def on_click(event):
+        root.x = event.x
+        root.y = event.y
+
+    def on_drag(event):
+        dx = event.x - root.x
+        dy = event.y - root.y
+        x = root.winfo_x() + dx
+        y = root.winfo_y() + dy
+        root.geometry(f"+{x}+{y}")
+
+    root.bind("<Button-1>", on_click)
+    root.bind("<B1-Motion>", on_drag)
 
     # Start the GUI
     root.mainloop()
