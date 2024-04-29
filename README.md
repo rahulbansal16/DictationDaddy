@@ -24,3 +24,13 @@ python main.py -provider assemblyai
 Join the [Discord Group](https://discord.gg/tz4PF2PJ)
 
 https://chat.openai.com/c/c8a63dec-f2f1-48f4-956c-3a40b2efe93a
+
+# Roadmap
+
+- ✅ Initial concept and design
+- [ ] Add ability to talk continously based on screen content.
+- [ ] Add Feedback for listening, understanding, executing
+- [ ] Render Markdown files in the UI. 
+- [ ] Multiple Models for Improved Speech to Text.
+- [ ] Allow execution of commands via voice.
+- [ ] Launch
