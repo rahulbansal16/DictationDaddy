@@ -28,3 +28,5 @@ If the vision resonates with you.
 Please join the discord [Discord Group](https://discord.gg/WAcBZHvunz)
 
 The current code is actively getting developed.
+You can fill out this form to get the version 1
+https://forms.gle/GndD9p7hip8hSbJR6
