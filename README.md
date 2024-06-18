@@ -21,6 +21,10 @@ pip install -r requirements.txt
 python main.py -provider assemblyai
 ```
 
+
+https://github.com/rahulbansal16/DictationDaddy/assets/8466045/6c02ed3d-1224-4eca-8fcb-720cb803e563
+
+
 Join the [Discord Group](https://discord.gg/WAcBZHvunz)
 
 https://chat.openai.com/c/c8a63dec-f2f1-48f4-956c-3a40b2efe93a
