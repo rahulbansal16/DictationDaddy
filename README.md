@@ -1,43 +1,28 @@
 # DictationDaddy 
 
-Welcome to DictationDaddy, a project born out of frustration with current dictation tools. Despite advancements in LMS and technologies like GPT, many dictation tools still fall short.      
-DictationDaddy aims to bridge this gap, leveraging the power of AssemblyAI and Deepgram to deliver a superior dictation experience. We want to be what Cortana, Siri failed to become.
+Welcome to DictationDaddy, a project born out of frustration with current dictation tools.      
+As a developer, I often find it painful to type everytime as it causes pain in shoulder.       
+so, I often use dictation tools to write.
 
-I will be building core technology behind enabling real time voice assistants and allowing other people to build apps on top of it. 
-For example I will provide real time speech transcription, context passing, invoking the agent and executing it.
+But, the current dictation tools sucks :- 
+1. Their transcriptions is not upto the mark. 
+2. They are dumb and don't understand the user intent very well. 
+3. Navigation to fix the errors in the transcription is painful. 
+4. Basic transcriptions like converting date to MM-DD-YY format will require manual intervention.  
+5. You can't write code using them.
+6. You can't give commands like delete the first paragraph.
 
-To run this script, follow these steps:
 
-1. Ensure you have Python installed on your system. This script has been tested with Python 3.11, but it should work with other versions as well.
-```sh
-pip install -r requirements.txt
-```
+# Vision
+1. Aim is to build an personal assistant that can accomplish task from users voice.
+2. It should be smart enough to have past memory.
+3. It should be smart enough to predict user intents.
 
-2. You will need API keys for both AssemblyAI and Deepgram. Please ensure you have these keys available in your environment variables or a `.env` file in your project directory.
-
-3. Install the required dependencies by running the following command in your terminal or command prompt:
-```sh
-python main.py -provider assemblyai
-```
+Check out this demo to understand it.
 
 
 https://github.com/rahulbansal16/DictationDaddy/assets/8466045/6c02ed3d-1224-4eca-8fcb-720cb803e563
 
 
-Join the [Discord Group](https://discord.gg/WAcBZHvunz)
-
-https://chat.openai.com/c/c8a63dec-f2f1-48f4-956c-3a40b2efe93a
-
-
-
-![image](https://github.com/rahulbansal16/DictationDaddy/assets/8466045/89264f5e-18ad-4527-b804-1160c452b902)
-
-# Roadmap
-
-- ✅ Initial concept and design
-- [ ] Add ability to talk continously based on screen content.
-- [ ] Add Feedback for listening, understanding, executing
-- [ ] Render Markdown files in the UI. 
-- [ ] Multiple Models for Improved Speech to Text.
-- [ ] Allow execution of commands via voice.
-- [ ] Launch
+If the vision resonates with you.    
+Please join the discord [Discord Group](https://discord.gg/WAcBZHvunz)
