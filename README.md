@@ -26,3 +26,5 @@ https://github.com/rahulbansal16/DictationDaddy/assets/8466045/6c02ed3d-1224-4ec
 
 If the vision resonates with you.    
 Please join the discord [Discord Group](https://discord.gg/WAcBZHvunz)
+
+The current code is actively getting developed.
