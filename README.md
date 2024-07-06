@@ -6,7 +6,7 @@ so, I often use dictation tools to write.
 
 
 # Steps to install it For Intel Chip Mac Users
-1. You can directly install the DictationDaddy-0.0.1.dmg from [release]([url](https://github.com/rahulbansal16/DictationDaddy/releases/)).
+1. You can directly install the DictationDaddy-0.0.1.dmg from [release](https://github.com/rahulbansal16/DictationDaddy/releases/).
 2. If you are getting the following error on installing.
 
 
@@ -18,7 +18,7 @@ Follow the below steps.
 ![WhatsApp Image 2024-07-03 at 11 23 26 (1)](https://github.com/rahulbansal16/DictationDaddy/assets/8466045/153f03a7-58f6-4aa4-9ef1-31e1b8d66a9a)
 
 # Steps to install it For Windows.
-1. You can directly install the DictationDaddy-0.0.1.exe from [release]([url](https://github.com/rahulbansal16/DictationDaddy/releases/)).
+1. You can directly install the DictationDaddy-0.0.1.exe from [release](https://github.com/rahulbansal16/DictationDaddy/releases/).
 2. If you get this error
 
 ![WhatsApp Image 2024-07-06 at 19 17 29](https://github.com/rahulbansal16/DictationDaddy/assets/8466045/5c304131-a550-4c3e-b82f-d27b4dec830f)
