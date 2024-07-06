@@ -19,7 +19,13 @@ Follow the below steps.
 
 # Steps to install it For Windows.
 1. You can directly install the DictationDaddy-0.0.1.exe from [release]([url](https://github.com/rahulbansal16/DictationDaddy/releases/)).
-2. If you are getting the following error on installing.
+2. If you get this error
+
+![WhatsApp Image 2024-07-06 at 19 17 29](https://github.com/rahulbansal16/DictationDaddy/assets/8466045/5c304131-a550-4c3e-b82f-d27b4dec830f)
+
+
+3. Click on Keep it.
+4. If you are getting the following error on installing.
 
 
 ![windows_error](https://github.com/rahulbansal16/DictationDaddy/assets/8466045/cbea9488-5c14-48b3-bfbf-4868daf84a1b)
