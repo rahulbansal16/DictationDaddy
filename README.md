@@ -40,6 +40,10 @@ Click on the More Info and Run Anyway
 ![window_more_info_click](https://github.com/rahulbansal16/DictationDaddy/assets/8466045/c004e6fd-350b-4f4b-a2dc-0d6578c3ae61)
 
 
+# Add the Liscenese Key, Contact rahul@dictationdaddy.com for the key.
+
+![74409391](https://github.com/user-attachments/assets/6148d253-0d58-49a5-a66a-a45e284e4d9d)
+
 # Congrats. Now the app should work.
 - Just launch the app and press Ctrl+L to start listening.
 - Press Space to stop.
