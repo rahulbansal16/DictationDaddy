@@ -1,8 +1,16 @@
 name: Sign Release Files
 
 on:
+  # Trigger on release publish
   release:
     types: [published]
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to sign (leave empty for latest)'
+        required: false
+        type: string
 
 jobs:
   sign-release:
@@ -13,15 +21,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download latest release assets
+      - name: Set release tag
+        id: set_tag
+        run: |
+          if ("${{ github.event.inputs.release_tag }}" -eq "") {
+            # For automatic trigger, use the release tag that triggered the workflow
+            # For manual trigger without tag, use latest
+            if ("${{ github.event.release.tag_name }}" -ne "") {
+              $tag = "${{ github.event.release.tag_name }}"
+            } else {
+              $tag = $(gh release list -L 1 --json tagName --jq '.[0].tagName')
+            }
+          } else {
+            $tag = "${{ github.event.inputs.release_tag }}"
+          }
+          echo "RELEASE_TAG=$tag" >> $env:GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download release assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Create directory for assets
           mkdir release-files
-          
-          # Download exe, dll, and msi files
-          gh release download --pattern "*.exe" --pattern "*.dll" --pattern "*.msi" --dir release-files
+          gh release download $env:RELEASE_TAG --pattern "*.exe" --pattern "*.dll" --pattern "*.msi" --dir release-files
+          echo "Downloaded files for release: $env:RELEASE_TAG"
+          ls release-files
 
       - name: Sign files with Trusted Signing
         uses: azure/trusted-signing-action@v0
@@ -42,10 +67,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get the latest release tag
-          $latest_tag = gh release list -L 1 --json tagName --jq '.[0].tagName'
-          
-          # Upload all signed files back to the release
           Get-ChildItem release-files/*.exe, release-files/*.dll, release-files/*.msi | ForEach-Object {
-              gh release upload $latest_tag $_.FullName --clobber
+              Write-Host "Uploading: $($_.Name)"
+              gh release upload $env:RELEASE_TAG $_.FullName --clobber
           }
