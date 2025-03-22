@@ -1,0 +1,48 @@
+name: Sign Release Files
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  sign-release:
+    runs-on: windows-latest
+    name: Sign release files with Trusted Signing
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download release assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create directory for assets
+          mkdir release-files
+          
+          # Download all assets from the release
+          gh release download ${{ github.event.release.tag_name }} --dir release-files
+
+      - name: Sign files with Trusted Signing
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: https://eus.codesigning.azure.net/ # Replace with your endpoint
+          trusted-signing-account-name: your-account-name # Replace with your account name
+          certificate-profile-name: your-profile-name # Replace with your profile name
+          files-folder: ${{ github.workspace }}/release-files
+          files-folder-filter: exe,dll,msi # Adjust file types as needed
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Upload signed files to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Upload all signed files back to the release
+          for file in release-files/*; do
+            gh release upload ${{ github.event.release.tag_name }} "$file" --clobber
+          done
