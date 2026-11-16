@@ -67,7 +67,7 @@ output: 'Hellow how are you?'
 
 def callVisionGPT(base64_image, prompt):
     response = openai.ChatCompletion.create(
-        model="gpt-4-turbo",
+        model="gpt-5.6-sol",
         messages=[
             {
                 "role": "user",
